@@ -45,15 +45,23 @@ class Clearance::PasswordsController < ApplicationController
 
   def forbid_missing_token
     if params[:token].blank?
-      raise ActionController::Forbidden, "missing token"
+      flash_failure_when_forbidden
+      render :template => 'passwords/new'
     end
   end
 
   def forbid_non_existent_user
     unless ::User.find_by_id_and_confirmation_token(
                   params[:user_id], params[:token])
-      raise ActionController::Forbidden, "non-existent user"
+      flash_failure_when_forbidden
+      render :template => 'passwords/new'
     end
+  end
+
+  def flash_failure_when_forbidden
+    flash.now[:failure] = translate(:forbidden,
+      :scope   => [:clearance, :controllers, :passwords],
+      :default => "You are not authorized to view that page. Are you trying to reset your password?")
   end
 
   def flash_notice_after_create
